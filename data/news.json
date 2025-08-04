@@ -1,0 +1,23 @@
+[
+    {
+        "title": "Breaking: AI Reaches Human Parity",
+        "description": "A new AI model matches human performance in exams.",
+        "image": "https://via.placeholder.com/300x150",
+        "source": "OpenAI Times",
+        "url": "https://openai.com/blog"
+    },
+    {
+        "title": "Global Tech Expo 2025 Highlights",
+        "description": "Tech leaders gather to discuss the future of computing.",
+        "image": "https://via.placeholder.com/300x150",
+        "source": "TechCrunch",
+        "url": "https://techcrunch.com"
+    },
+    {
+        "title": "SpaceX Launches Mars Cargo",
+        "description": "New step in colonizing the red planet.",
+        "image": "https://via.placeholder.com/300x150",
+        "source": "Space Daily",
+        "url": "https://spacedaily.com"
+    }
+]

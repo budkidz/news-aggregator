@@ -1,0 +1,114 @@
+/* Mobile First Responsive Design */
+
+/* Large screens (desktops) */
+@media (min-width: 1200px) {
+    .main-container {
+        padding: 3rem;
+    }
+    
+    .news-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+}
+
+/* Medium screens (tablets) */
+@media (max-width: 992px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .sidebar {
+        position: static;
+        margin-top: 2rem;
+    }
+    
+    .main-container {
+        padding: 1.5rem;
+    }
+    
+    .news-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+/* Small screens (mobile) */
+@media (max-width: 768px) {
+    .main-container {
+        padding: 1rem;
+    }
+    
+    .news-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .nav-pills {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .nav-pills .nav-link {
+        margin: 0.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .search-container {
+        max-width: 100%;
+        margin: 0.5rem 0;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .sidebar {
+        padding: 1.5rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 576px) {
+    .logo {
+        font-size: 1.5rem;
+    }
+    
+    .news-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    .card-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    header .container-fluid {
+        padding: 1rem;
+    }
+    
+    .nav-pills .nav-link {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    header, footer, .sidebar {
+        display: none;
+    }
+    
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .news-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
