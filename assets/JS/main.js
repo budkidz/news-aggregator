@@ -3,23 +3,6 @@ let allNews = [];
 let filteredNews = [];
 let currentCategory = 'all';
 
-// Sample news data
-const sampleNews = [
-function loadNews() {
-    fetch('php/news.php')
-    .then(response => response.json())
-    .then(data => {
-        allNews = data;
-        filteredNews = allNews;
-        renderNews();
-        hideLoading();
-    })
-    .catch(error => {
-        console.error('Failed to fetch news:', error);
-    });
-}
-];
-
 // Initialize application
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -34,7 +17,7 @@ function initializeApp() {
 
 function loadNews(category = 'all') {
     showLoading();
-    fetch(`php/news.php?category=${encodeURIComponent(category)}`)
+    fetch(`PHP/news.php?category=${encodeURIComponent(category)}`)
         .then(response => response.json())
         .then(data => {
             allNews = data;
@@ -140,6 +123,13 @@ function setActiveCategory(activeLink, category) {
 function filterByCategory(category) {
     loadNews(category);
     currentCategory = category;
+}
+
+function showLoading() {
+    const loading = document.querySelector('.loading');
+    if (loading) {
+        loading.style.display = 'flex';
+    }
 }
 
 function hideLoading() {
