@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
@@ -19,6 +21,9 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $articles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode($articles);
+} catch (Exception $e) {
+    echo json_encode(['error' => $e->getMessage()]);
 
     // Format the response to match frontend expectations
     $formattedArticles = [];
