@@ -25,21 +25,7 @@
                     </div>
                 </div>
                 <section id="newsContainer" class="news-grid">
-                    <article id="news-template" style="display:none;">
-                        <div class="col">
-                            <div class="card h-100">
-                                <img src="https://via.placeholder.com/300x150" class="card-img-top" alt="...">
-                                <div class="card-body">
-                                    <h5 class="card-title">Sample Headline</h5>
-                                    <p class="card-text">Short description of the news article...</p>
-                                </div>
-                                <div class="card-footer d-flex justify-content-between small text-muted">
-                                    <span class="source">Source: BBC</span>
-                                    <a href="#" class="text-decoration-none read-more">Read more →</a>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
+                    <!-- News cards will be dynamically added here -->
                 </section>
             </main>
             
@@ -59,32 +45,48 @@
     <script src="assets/js/animations.js"></script>
     <script>
 function fetchNews(category = "") {
+    console.log("Fetching news for category:", category);
     let url = "PHP/news.php";
     if (category) url += `?category=${encodeURIComponent(category)}`;
+    
     fetch(url)
-        .then(res => res.json())
+        .then(res => {
+            console.log("Response status:", res.status);
+            return res.json();
+        })
         .then(data => {
-            const container = document.getElementById('newsContainer'); // Correct ID
+            console.log("Data received:", data);
+            const container = document.getElementById('newsContainer');
             container.innerHTML = ""; // Clear previous news
-            const template = document.getElementById('news-template');
             const articles = data.articles || data; // Support both formats
+            console.log("Number of articles:", articles.length);
             if (!articles.length) {
                 container.innerHTML = "<p>No news found.</p>";
                 return;
             }
-            articles.forEach(article => {
-                const clone = template.cloneNode(true);
-                clone.style.display = "";
-                clone.removeAttribute("id");
-                clone.querySelector(".card-img-top").src = article.image_url || "https://via.placeholder.com/300x150";
-                clone.querySelector(".card-title").textContent = article.title;
-                clone.querySelector(".card-text").textContent = article.description;
-                clone.querySelector(".source").textContent = "Source: " + (article.source || "Unknown");
-                clone.querySelector(".read-more").href = article.url;
-                container.appendChild(clone);
+            articles.forEach((article, index) => {
+                console.log("Processing article", index, article.title);
+                const card = document.createElement("div");
+                card.className = "col mb-4";
+                card.innerHTML = `
+                    <div class="card h-100">
+                        <img src="${article.image_url || 'https://via.placeholder.com/300x150'}" class="card-img-top" alt="${article.title}">
+                        <div class="card-body">
+                            <h5 class="card-title">${article.title}</h5>
+                            <p class="card-text">${article.description}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between small text-muted">
+                            <span class="source">Source: ${article.source || 'Unknown'}</span>
+                            <a href="${article.url}" target="_blank" class="text-decoration-none read-more">Read more →</a>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
             });
+            document.getElementById('updateTime').textContent = new Date().toLocaleTimeString();
         })
-        .catch(() => {
+        .catch(error => {
+            console.error("Error fetching news:", error);
             document.getElementById('newsContainer').innerHTML = "<p>Error loading news.</p>";
         });
 }
@@ -96,8 +98,9 @@ if (select) {
 }
 
 // Load news when page loads
-fetchNews();
-
-</script>
+document.addEventListener('DOMContentLoaded', () => {
+    fetchNews();
+});
+    </script>
 </body>
 </html>
