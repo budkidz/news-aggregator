@@ -1,0 +1,11 @@
+{
+    "php.validate.executablePath": "C:/wamp64/bin/php/php8.3.14/php.exe",
+    "php.executablePath": "C:/wamp64/bin/php/php8.3.14/php.exe",
+    "code-runner.runInTerminal": true,
+    "code-runner.executorMap": {
+        "php": "C:/wamp64/bin/php/php8.3.14/php.exe"
+},
+    "terminal.integrated.env.windows": {
+    "PATH": "C:/wamp64/bin/php/php8.3.14;${env:PATH}"
+    }
+}

@@ -44,6 +44,23 @@
     <script src="assets/js/main.js"></script>
     <script src="assets/js/animations.js"></script>
     <script>
+
+
+function timeAgo(dateString) {
+    const date = new Date(dateString.replace(/-/g, '/')); // Fix for cross-browser date parsing
+    if (isNaN(date.getTime())) return ''; // Invalid date fallback
+    const now = new Date();
+    const seconds = Math.round((now - date) / 1000);
+
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.round(hours / 24);
+    return `${days}d ago`;
+}
+
 function fetchNews(category = "") {
     console.log("Fetching news for category:", category);
     let url = "PHP/news.php";
@@ -51,34 +68,38 @@ function fetchNews(category = "") {
     
     fetch(url)
         .then(res => {
-            console.log("Response status:", res.status);
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
             return res.json();
         })
         .then(data => {
             console.log("Data received:", data);
             const container = document.getElementById('newsContainer');
             container.innerHTML = ""; // Clear previous news
-            const articles = data.articles || data; // Support both formats
-            console.log("Number of articles:", articles.length);
+            const articles = Array.isArray(data) ? data : (data.articles || []);
+            
             if (!articles.length) {
                 container.innerHTML = "<p>No news found.</p>";
                 return;
             }
+
             articles.forEach((article, index) => {
                 console.log("Processing article", index, article.title);
                 const card = document.createElement("div");
                 card.className = "col mb-4";
                 card.innerHTML = `
                     <div class="card h-100">
-                        <img src="${article.image_url || 'https://via.placeholder.com/300x150'}" class="card-img-top" alt="${article.title}">
+                        <img src="${article.image_url || 'assets/Images/placeholder.jpg'}" class="card-img-top" alt="${article.title}" onerror="this.onerror=null;this.src='assets/Images/placeholder.jpg';">
                         <div class="card-body">
                             <h5 class="card-title">${article.title}</h5>
-                            <p class="card-text">${article.description}</p>
+                            <p class="card-text">${article.description || ''}</p>
                         </div>
                         <div class="card-footer d-flex justify-content-between small text-muted">
-                            <span class="source">Source: ${article.source || 'Unknown'}</span>
-                            <a href="${article.url}" target="_blank" class="text-decoration-none read-more">Read more →</a>
+                            <span class="category">Category: ${article.category || 'Unknown'}</span>
+                            <span class="time-ago">${timeAgo(article.published_at)}</span>
                         </div>
+                        <a href="${article.url}" target="_blank" class="stretched-link"></a>
                     </div>
                 `;
                 container.appendChild(card);
@@ -87,7 +108,7 @@ function fetchNews(category = "") {
         })
         .catch(error => {
             console.error("Error fetching news:", error);
-            document.getElementById('newsContainer').innerHTML = "<p>Error loading news.</p>";
+            document.getElementById('newsContainer').innerHTML = "<p>Error loading news. Please try again later.</p>";
         });
 }
 

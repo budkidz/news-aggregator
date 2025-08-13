@@ -8,8 +8,8 @@
             <input type="text" id="searchInput" class="form-control" placeholder="Search news..." aria-label="Search">
         </div>
         <div class="d-flex gap-2">
-            <a href="PHP/login.php" class="btn btn-outline-primary">Sign In</a>
-            <a href="PHP/signup.php" class="btn btn-primary">Sign Up</a>
+            <a href="PHP/login.php" class="btn btn-outline-primary" target="_blank">Sign In</a>
+            <a href="PHP/signup.php" class="btn btn-primary" target="_blank">Sign Up</a>
         </div>
     </div>
     <nav class="mt-3">

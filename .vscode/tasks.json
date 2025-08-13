@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run fetch_rss with WAMP PHP",
+			"type": "shell",
+			"command": "C:\\wamp64\\bin\\php\\php8.3.14\\php.exe",
+			"args": [
+				"PHP\\fetch_rss.php"
+			]
+		}
+	]
+}
