@@ -44,8 +44,10 @@ header {
 }
 
 .logo-img {
-    max-height: 50px;
-    height: auto;
+    width: 174px; /* approximate 173.49 */
+    height: 48px;
+    object-fit: contain;
+    display: block;
 }
 
 .nav-pills .nav-link {
@@ -60,7 +62,7 @@ header {
 
 /* Search Bar Width Adjustment */
 .search-bar-lg {
-    width: 400px !important;
+    width: 542px !important; /* approximate 541.51 */
     flex: none !important;
 }
 
@@ -95,6 +97,7 @@ header {
     display: grid;
     grid-template-columns: 1fr 320px;
     gap: 2rem;
+    /* Keep items aligned to the top so sidebar height fits its content */
     align-items: start;
 }
 
@@ -261,6 +264,39 @@ footer {
     margin-top: 4rem;
 }
 
+/* Responsive header for tablets and below */
+@media (max-width: 991.98px) {
+    /* This single rule block handles all screens below the 'lg' breakpoint,
+       ensuring a consistent stacked layout for the header. */
+
+    /* Force vertical stacking and center alignment for all header items.
+       This overrides Bootstrap's `flex-lg-row`. */
+    header .container-fluid > .d-flex {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    /* Make the search bar fluid to prevent overflow on any small screen.
+       It will take up 90% of its container's width, up to a max of 500px. */
+    .search-bar-lg {
+        width: 90% !important;
+        max-width: 500px !important;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        order: 2; /* Ensures search is below logo */
+    }
+
+    .logo-wrapper {
+        order: 1; /* Ensures logo is first */
+    }
+
+    /* Ensure the auth buttons are also centered and have some space. */
+    header .container-fluid > .d-flex > .d-flex.gap-2 {
+        justify-content: center;
+        order: 3; /* Ensures buttons are last */
+    }
+}
+
 .social-icon {
     width: 40px;
     height: 40px;
@@ -302,4 +338,15 @@ footer {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+}
+
+/* Keep footer social icons on one line for medium-small screens (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    footer .col-md-4.text-center > div {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: nowrap; /* prevent wrapping */
+    }
+    footer .social-icon { margin: 0 0.35rem; }
 }

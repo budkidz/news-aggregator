@@ -1,55 +1,84 @@
 <?php
+// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-header('Content-Type: application/json');
+
+// Set headers for JSON response
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
-// Use PDO instead of mysqli for better compatibility
-include 'config.php';
+// Use output buffering to catch any stray output (like warnings) that could break JSON
+ob_start();
+
+require_once __DIR__ . '/config.php';
 
 try {
-    $category = isset($_GET['category']) ? $_GET['category'] : '';
-    $sql = "SELECT * FROM articles";
+    // --- Parameters ---
+    $category = isset($_GET['category']) ? trim(strtolower($_GET['category'])) : 'all';
+    $searchQuery = isset($_GET['q']) ? trim($_GET['q']) : '';
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 100;
+
+    // --- Build Query ---
+    $sql = "SELECT id, title, description, url, image_url, source, published_at, category FROM articles";
     $params = [];
+    $whereClauses = [];
 
-    if ($category && $category !== 'all') {
-        $sql .= " WHERE category = ?";
-        $params[] = $category;
+    // 1. Category Filtering
+    if ($category !== 'all') {
+        // Handle category aliases if necessary, e.g., 'zambia' -> 'zambian'
+        $aliasMap = ['zambia' => 'zambian'];
+        $resolvedCategory = $aliasMap[$category] ?? $category;
+        $whereClauses[] = "category = ?";
+        $params[] = $resolvedCategory;
     }
-    $sql .= " ORDER BY id DESC LIMIT 50";
 
+    // 2. Search Filtering
+    if (!empty($searchQuery)) {
+        // Search across title, description, and source
+        $whereClauses[] = "(title LIKE ? OR description LIKE ? OR source LIKE ?)";
+        $searchTerm = "%{$searchQuery}%";
+        // Add the search term for each placeholder
+        array_push($params, $searchTerm, $searchTerm, $searchTerm);
+    }
+
+    // Combine WHERE clauses
+    if (!empty($whereClauses)) {
+        $sql .= " WHERE " . implode(" AND ", $whereClauses);
+    }
+
+    // 3. Ordering and Limiting
+    // The LIMIT value must be an integer directly in the query, not a bound parameter.
+    $sql .= " ORDER BY published_at DESC, id DESC LIMIT " . $limit;
+
+    // --- Execute Query ---
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $articles = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode($articles);
-} catch (Exception $e) {
-    echo json_encode(['error' => $e->getMessage()]);
 
-    // Format the response to match frontend expectations
-    $formattedArticles = [];
-    foreach ($articles as $row) {
-        $formattedArticles[] = [
-            'title' => $row['title'],
-            'description' => $row['description'],
-            'url' => $row['url'],
-            'image_url' => $row['image_url'] ?: 'https://via.placeholder.com/300x150',
-            'source' => $row['source'],
-            'published_at' => $row['published_at'],
-            'category' => $row['category']
-        ];
-    }
+    // --- Clean and Send Response ---
+    // Clear any buffered output before sending the JSON response
+    ob_end_clean();
 
     echo json_encode([
         'status' => 'success',
-        'count' => count($formattedArticles),
-        'articles' => $formattedArticles
-    ]);
+        'count' => count($articles),
+        'articles' => $articles
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-} catch (Exception $e) {
+} catch (PDOException $e) {
+    // Clear buffer on error as well
+    ob_end_clean();
+    http_response_code(500); // Internal Server Error
     echo json_encode([
         'status' => 'error',
-        'message' => $e->getMessage(),
-        'articles' => []
+        'message' => 'Database error: ' . $e->getMessage()
+    ]);
+} catch (Throwable $e) {
+    ob_end_clean();
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'An unexpected error occurred: ' . $e->getMessage()
     ]);
 }
-?>
+

@@ -44,83 +44,92 @@
     <script src="assets/js/main.js"></script>
     <script src="assets/js/animations.js"></script>
     <script>
-
-
-function timeAgo(dateString) {
-    const date = new Date(dateString.replace(/-/g, '/')); // Fix for cross-browser date parsing
-    if (isNaN(date.getTime())) return ''; // Invalid date fallback
+// Human readable relative time
+function timeAgo(isoString) {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
     const now = new Date();
-    const seconds = Math.round((now - date) / 1000);
-
+    const seconds = Math.floor((now - date) / 1000);
     if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.round(seconds / 60);
+    const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.round(minutes / 60);
+    const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
-    const days = Math.round(hours / 24);
+    const days = Math.floor(hours / 24);
     return `${days}d ago`;
 }
 
-function fetchNews(category = "") {
-    console.log("Fetching news for category:", category);
-    let url = "PHP/news.php";
-    if (category) url += `?category=${encodeURIComponent(category)}`;
-    
+function buildCard(article) {
+    const div = document.createElement('div');
+    div.className = 'col mb-4';
+    const imgSrc = article.image_url || 'assets/Images/placeholder.jpg';
+    div.innerHTML = `
+    <div class="card h-100">
+        <img src="${imgSrc}" class="card-img-top" alt="${article.title}" onerror="this.onerror=null;this.src='assets/Images/placeholder.jpg';">
+        <div class="card-body">
+            <h5 class="card-title">${article.title}</h5>
+            <p class="card-text">${article.description || ''}</p>
+        </div>
+        <div class="card-footer d-flex justify-content-between small text-muted">
+            <span class="source">${article.source || ''}</span>
+            <span class="time-ago" title="${article.published_at}">${timeAgo(article.published_at)}</span>
+        </div>
+        <a href="${article.url}" target="_blank" class="stretched-link" rel="noopener"></a>
+    </div>`;
+    return div;
+}
+
+function setActiveCategory(cat) {
+    document.querySelectorAll('nav .nav-link').forEach(a => {
+        const match = !cat || cat === 'all' ? a.dataset.category === 'all' : a.dataset.category === cat;
+        a.classList.toggle('active', match);
+    });
+}
+
+function fetchNews(category = '') {
+    const container = document.getElementById('newsContainer');
+    container.innerHTML = '<p class="text-muted">Loading…</p>';
+    let url = 'PHP/news.php';
+    if (category && category !== 'all') url += `?category=${encodeURIComponent(category)}`;
     fetch(url)
-        .then(res => {
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            return res.json();
+        .then(r => {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
         })
         .then(data => {
-            console.log("Data received:", data);
-            const container = document.getElementById('newsContainer');
-            container.innerHTML = ""; // Clear previous news
             const articles = Array.isArray(data) ? data : (data.articles || []);
-            
+            container.innerHTML = '';
             if (!articles.length) {
-                container.innerHTML = "<p>No news found.</p>";
+                container.innerHTML = '<p class="text-muted">No news found.</p>';
                 return;
             }
-
-            articles.forEach((article, index) => {
-                console.log("Processing article", index, article.title);
-                const card = document.createElement("div");
-                card.className = "col mb-4";
-                card.innerHTML = `
-                    <div class="card h-100">
-                        <img src="${article.image_url || 'assets/Images/placeholder.jpg'}" class="card-img-top" alt="${article.title}" onerror="this.onerror=null;this.src='assets/Images/placeholder.jpg';">
-                        <div class="card-body">
-                            <h5 class="card-title">${article.title}</h5>
-                            <p class="card-text">${article.description || ''}</p>
-                        </div>
-                        <div class="card-footer d-flex justify-content-between small text-muted">
-                            <span class="category">Category: ${article.category || 'Unknown'}</span>
-                            <span class="time-ago">${timeAgo(article.published_at)}</span>
-                        </div>
-                        <a href="${article.url}" target="_blank" class="stretched-link"></a>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
+            const frag = document.createDocumentFragment();
+            articles.forEach(a => frag.appendChild(buildCard(a)));
+            container.appendChild(frag);
             document.getElementById('updateTime').textContent = new Date().toLocaleTimeString();
         })
-        .catch(error => {
-            console.error("Error fetching news:", error);
-            document.getElementById('newsContainer').innerHTML = "<p>Error loading news. Please try again later.</p>";
+        .catch(err => {
+            console.error(err);
+            container.innerHTML = '<p class="text-danger">Error loading news.</p>';
         });
 }
 
-// If you have a category select, add this:
-const select = document.getElementById('category-select');
-if (select) {
-    select.addEventListener('change', () => { fetchNews(select.value); });
-}
+// Persist chosen category across reloads
+document.addEventListener('click', e => {
+    const link = e.target.closest('a.nav-link[data-category]');
+    if (link) {
+        e.preventDefault();
+        const cat = link.dataset.category || 'all';
+        localStorage.setItem('nb_active_category', cat);
+        setActiveCategory(cat);
+        fetchNews(cat);
+    }
+});
 
-// Load news when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    fetchNews();
+    const saved = localStorage.getItem('nb_active_category') || 'all';
+    setActiveCategory(saved);
+    fetchNews(saved);
 });
     </script>
 </body>

@@ -98,7 +98,10 @@ $feeds = [
     'zambian' => [
         'https://diggers.news/feed',
         'https://www.znbc.co.zm/news/feed/',
-        'https://zambianbusinesstimes.com/feed/'
+        'https://zambianbusinesstimes.com/feed/',
+        'https://lusakastar.com/feed/',
+        'https://www.dailynationzambia.com/feed/',
+        'https://www.miningnewszambia.com/feed/',
     ],
     // World News
     'world' => [
@@ -138,14 +141,30 @@ foreach ($feeds as $category => $feedList) {
         if (str_contains($feedUrl, 'nyt.com/svc/collections')) {
             $json = json_decode($feedContent, true);
             foreach ($json['members'] ?? [] as $item) {
-                $title        = $item['summary'] ?? $item['title'] ?? '';
+                $title        = $item['title'] ?? ($item['summary'] ?? '');
                 $description  = $item['summary'] ?? '';
                 $url          = $item['url'] ?? '';
-                $published_at = date('Y-m-d H:i:s', strtotime($item['updated_date'] ?? ''));
-                $image_url    = $item['multimedia'][0]['url'] ?? '';
-                // …insert into DB…
+                if (!$url) continue;
+                $updatedRaw   = $item['updated_date'] ?? '';
+                $ts = strtotime($updatedRaw);
+                if ($ts === false) { $ts = time(); }
+                $published_at = date('Y-m-d H:i:s', $ts);
+                $image_url    = '';
+                if (!empty($item['multimedia']) && is_array($item['multimedia'])) {
+                    foreach ($item['multimedia'] as $media) {
+                        if (!empty($media['url'])) { $image_url = $media['url']; break; }
+                    }
+                }
+                $source = parse_url($url, PHP_URL_HOST);
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM articles WHERE url = ?");
+                $stmt->execute([$url]);
+                if ($stmt->fetchColumn() == 0) {
+                    $insert = $pdo->prepare("INSERT INTO articles (title, description, url, image_url, source, published_at, category)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)");
+                    $insert->execute([$title, strip_tags($description), $url, $image_url, $source, $published_at, $category]);
+                }
             }
-            continue; // skip the XML branch
+            continue; // handled JSON format
         }
         libxml_use_internal_errors(true);
         $rss = simplexml_load_string($feedContent);
