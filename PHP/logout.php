@@ -13,7 +13,7 @@ if (ini_get("session.use_cookies")) {
     $domain = (isset($params["domain"]) && is_string($params["domain"])) ? $params["domain"] : '';
     $secure = (isset($params["secure"]) && ($params["secure"] === true || $params["secure"] === 1)) ? true : false;
     $httponly = (isset($params["httponly"]) && ($params["httponly"] === true || $params["httponly"] === 1)) ? true : false;
-    $sess_name = session_name();
+    $sess_name = (string) ini_get('session.name');
     if (!is_string($sess_name) || $sess_name === '') {
         $sess_name = 'PHPSESSID';
     }
